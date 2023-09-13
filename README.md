@@ -1,0 +1,1 @@
+**MoRec** is a Python framework for Modal recommendation which integrates commonly used datasets and metrics, and implements many state-of-the-art models. 
