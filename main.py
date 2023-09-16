@@ -4,7 +4,7 @@ import torch
 
 if __name__ == '__main__':
     # Register your model here
-    # 获取可用的CUDA设备数量
+
 
     # torch.cuda.set_device(1)
     # current_device = torch.cuda.current_device()
