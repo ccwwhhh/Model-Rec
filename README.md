@@ -42,15 +42,15 @@ Using pure text to create representation.
 
 >python main.py
 ================================================================================
- MoRec: A library for Modal Recommendation.
+> MoRec: A library for Modal Recommendation.
 ================================================================================
-Baseline Models:
-SASRec   BERT4Rec   CL4SRec   UnisRec
+>Baseline Models:
+>SASRec   BERT4Rec   CL4SRec   UnisRec
 --------------------------------------------------------------------------------
-Please enter the baselines you want to run:(Model that you want)
+>Please enter the baselines you want to run:(Model that you want)
 stages:
-Pre   Fine
+>Pre   Fine
 
 --------------------------------------------------------------------------------
-Please enter the stage you want:Pre
+>Please enter the stage you want:Pre
 
