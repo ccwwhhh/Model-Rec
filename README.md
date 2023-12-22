@@ -40,10 +40,9 @@ Using pure text to create representation.
 
 ## 3.Training
 
-python main.py
-
+>python main.py
 ================================================================================
-   MoRec: A library for Modal Recommendation.
+ MoRec: A library for Modal Recommendation.
 ================================================================================
 Baseline Models:
 SASRec   BERT4Rec   CL4SRec   UnisRec
