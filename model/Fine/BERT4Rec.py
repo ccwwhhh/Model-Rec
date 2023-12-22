@@ -25,8 +25,8 @@ class BERT4Rec(SequentialRecommender):
         datasetFile = self.config['dataset']
         head_num = int(args['-n_heads'])
         self.aug_rate = float(args['-mask_rate'])
-        if os.path.exists('./model/checkpoint/BERT4Rec.pt'):
-            state_dict  = torch.load('./model/checkpoint/BERT4Rec.pt')
+        if os.path.exists('./model/checkpoint/'+self.feature+'/BERT4Rec.pt'):
+            state_dict  = torch.load('./model/checkpoint/'+self.feature+'/BERT4Rec.pt')
             del  state_dict["item_emb"]
             self.model = BERT_Encoder(self.data, self.emb_size, self.max_len, block_num,head_num,drop_rate,self.feature,datasetFile)
             self.model.load_state_dict(state_dict,strict=False)
@@ -43,7 +43,7 @@ class BERT4Rec(SequentialRecommender):
             #self.fast_evaluation(epoch)
             for n, batch in enumerate(next_batch_sequence(self.data, self.batch_size,max_len=self.max_len)):
                 seq, pos, y, neg_idx, seq_len = batch
-
+                #mask_id=data.item_num+1
                 aug_seq, masked, labels = self.item_mask_for_bert(seq, seq_len, self.aug_rate, self.data.item_num+1)
                 seq_emb = model.forward(aug_seq, pos)
                 # item mask
@@ -57,7 +57,7 @@ class BERT4Rec(SequentialRecommender):
                     print('training:', epoch + 1, 'batch', n, 'batch_loss:', batch_loss.item(), 'rec_loss:', rec_loss.item())
             model.eval()
             self.fast_evaluation(epoch)
-        torch.save(model.state_dict(), './model/checkpoint/BERT4Rec.pt')
+       
 
     def item_mask_for_bert(self,seq,seq_len, mask_ratio, mask_idx):
         augmented_seq = seq.copy()
@@ -65,10 +65,9 @@ class BERT4Rec(SequentialRecommender):
         labels = []
         for i, s in enumerate(seq):
             to_be_masked = random.sample(range(seq_len[i]), max(floor(seq_len[i]*mask_ratio),1))
-
+            #batch_size*seqlen
             masked[i, to_be_masked] = 1
             # print("masked",masked)
-
             labels =labels+ list(augmented_seq[i, to_be_masked])
             augmented_seq[i, to_be_masked] = mask_idx
         return augmented_seq, masked, np.array(labels)
@@ -94,17 +93,17 @@ class BERT4Rec(SequentialRecommender):
                     pos[i, length-1] = length
                     seq[i, length-1] = self.data.item_num+1
                 else:
-
+                    
                     pos[i, length] = length+1
                     seq[i,length] = self.data.item_num+1
             seq_emb = self.model.forward(seq,pos)
             last_item_embeddings = [seq_emb[i,last-1,:].view(-1,self.emb_size) for i,last in enumerate(seq_len)]
-            item_feature_emb = self.model.mlps(self.model.bert_tensor)
-            # score = torch.matmul(torch.cat(last_item_embeddings,0), self.model.item_emb.transpose(0, 1))
+         
+            item_emb = self.model.item_emb
             if self.feature == 'text':
-                score = torch.matmul(torch.cat(last_item_embeddings,0), item_feature_emb.transpose(0, 1))
-            elif self.feature=='id':
-                score = torch.matmul(torch.cat(last_item_embeddings,0), self.model.item_emb.transpose(0, 1))
-            elif self.feature=='id+text':
-                score = torch.matmul(torch.cat(last_item_embeddings,0), (self.model.item_emb+item_feature_emb).transpose(0, 1))
+                item_emb = self.model.mlps(self.model.bert_tensor)
+            if self.feature == 'id+text':
+                item_emb = self.model.mlps(self.model.bert_tensor) + self.model.item_emb
+            score = torch.matmul(torch.cat(last_item_embeddings, 0), item_emb.transpose(0, 1))
+
         return score.cpu().numpy()

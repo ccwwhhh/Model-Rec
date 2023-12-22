@@ -54,32 +54,6 @@ def next_batch_pointwise(data,batch_size):
                 y.append(0)
         yield u_idx, i_idx, y
 
-# def next_batch_sequence(data, batch_size,n_negs=1):
-#     training_data = data.training_set
-#     shuffle(training_data)
-#     ptr = 0
-#     data_size = len(training_data)
-#     item_list = list(range(1,data.item_num+1))
-#     while ptr < data_size:
-#         if ptr+batch_size<data_size:
-#             end = ptr+batch_size
-#         else:
-#             end = data_size
-#         seq_len = []
-#         batch_max_len = max([len(s[0]) for s in training_data[ptr: end]])
-#         seq = np.zeros((end-ptr, batch_max_len),dtype=np.int)
-#         pos = np.zeros((end-ptr, batch_max_len),dtype=np.int)
-#         y = np.zeros((1, end-ptr),dtype=np.int)
-#         neg = np.zeros((1,n_negs, end-ptr),dtype=np.int)
-#         for n in range(0, end-ptr):
-#             seq[n, :len(training_data[ptr + n][0])] = training_data[ptr + n][0]
-#             pos[n, :len(training_data[ptr + n][0])] = list(reversed(range(1,len(training_data[ptr + n][0])+1)))
-#             seq_len.append(len(training_data[ptr + n][0]) - 1)
-#         y[0,:]=[s[1] for s in training_data[ptr:end]]
-#         for k in range(n_negs):
-#             neg[0,k,:]=sample(item_list,end-ptr)
-#         ptr=end
-#         yield seq, pos, seq_len, y, neg
 
 def next_batch_sequence(data, batch_size,n_negs=1,max_len=50):
     training_data = [item[1] for item in data.original_seq]
@@ -88,7 +62,7 @@ def next_batch_sequence(data, batch_size,n_negs=1,max_len=50):
     ptr = 0
     data_size = len(training_data)
     item_list = list(range(1,data.item_num+1))
-    # seq is item 1-n-1 in train
+
     while ptr < data_size:
         if ptr+batch_size<data_size:
             batch_end = ptr+batch_size
@@ -114,6 +88,45 @@ def next_batch_sequence(data, batch_size,n_negs=1,max_len=50):
 
         yield seq, pos, y, neg, np.array(seq_len,np.int)
 
+
+def next_batch_sequence_Mi_Mo(data, batch_size,n_negs=1,max_len=50):
+    training_data = [item[1] for item in data.original_seq]
+
+    shuffle(training_data)
+    ptr = 0
+    data_size = len(training_data)
+    item_list = list(range(1, data.item_num + 1))
+
+    while ptr < data_size:
+        if ptr + batch_size < data_size:
+            batch_end = ptr + batch_size
+        else:
+            batch_end = data_size
+        seq = np.zeros((batch_end - ptr, max_len), dtype=np.int)
+        pos = np.zeros((batch_end - ptr, max_len), dtype=np.int)
+        Mi = [[0 for _ in range(max_len)] for _ in range(batch_end - ptr)]
+        Mo = [[0 for _ in range(max_len)] for _ in range(batch_end - ptr)]
+        y = np.zeros((batch_end - ptr, max_len), dtype=np.int)
+        neg = np.zeros((batch_end - ptr, max_len), dtype=np.int)
+        seq_len = []
+        for n in range(0, batch_end - ptr):
+            start = len(training_data[ptr + n]) > max_len and -max_len or 0
+            end = len(training_data[ptr + n]) > max_len and max_len - 1 or len(training_data[ptr + n]) - 1
+            seq[n, :end] = training_data[ptr + n][start:-1]
+            seq_len.append(end)
+            pos[n, :end] = list(range(1, end + 1))
+
+            for i in range(0,end):
+               pass
+            y[n, :end] = training_data[ptr + n][start + 1:]
+            negatives = sample(item_list, end)
+            while len(set(negatives).intersection(set(training_data[ptr + n][start:-1]))) >0:
+                negatives = sample(item_list, end)
+            neg[n,:end]=negatives
+        ptr=batch_end
+
+        yield seq, pos, y, neg, np.array(seq_len,np.int)
+
 def next_batch_sequence_for_test(data, batch_size,max_len=50):
     sequences = [item[1] for item in data.original_seq]
     ptr = 0
@@ -126,7 +139,7 @@ def next_batch_sequence_for_test(data, batch_size,max_len=50):
         seq = np.zeros((batch_end-ptr, max_len),dtype=np.int)
         pos = np.zeros((batch_end-ptr, max_len),dtype=np.int)
         seq_len = []
-        #seq is all items in train set
+      
         for n in range(0, batch_end-ptr):
             # an_example
             # start 0

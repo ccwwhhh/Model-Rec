@@ -32,7 +32,7 @@ class FileIO(object):
                     data.append([user_id, item_id, float(weight)])
 
         if rec_type == 'sequential':
-
+            #for multiple pre-train datasets, divide and extract 
             files=file.split(',')
             #print(files)
             data = {}

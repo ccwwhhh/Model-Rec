@@ -4,10 +4,13 @@ import numpy as np
 from base.seq_recommender import SequentialRecommender
 from util.conf import OptionConf
 from util.sampler import next_batch_sequence
-from model.sequential.SASRec import SASRec_Model
+from model.Module.SASRec_module import MLPS
+from model.Module.SASRec_module import SASRec_Model
 from util.loss_torch import l2_reg_loss,InfoNCE,batch_softmax_loss
 from data.augmentor import SequenceAugmentor
 
+torch.cuda.set_device(1)
+current_device = torch.cuda.current_device()
 
 # Paper: Contrastive Learning for Sequential Recommendation, ICDE'22
 
@@ -21,7 +24,8 @@ class CL4SRec(SequentialRecommender):
         self.aug_type = int(args['-aug_type'])
         self.aug_rate = float(args['-aug_rate'])
         self.cl_rate = float(args['-cl_rate'])
-        self.model = SASRec_Model(self.data, self.emb_size, self.max_len, block_num,head_num,drop_rate)
+        datasetFile = self.config['dataset']
+        self.model = SASRec_Model(self.data, self.emb_size, self.max_len, block_num,head_num,drop_rate,self.feature,datasetFile)
         initializer = nn.init.xavier_uniform_
         self.model.item_emb = nn.Parameter(initializer(torch.empty(self.data.item_num + 2, self.emb_size)))
         self.rec_loss = torch.nn.BCEWithLogitsLoss()

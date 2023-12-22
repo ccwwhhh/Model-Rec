@@ -16,10 +16,10 @@ class Sequence(Data):
         self.original_seq = self.__generate_set()
         self.raw_seq_num = len(self.seq)
         self.item_num = len(self.item)
+       
 
-    #认为是把序列和item重新编号
     def __generate_set(self):
-        #seq从1开始，但不知道这里有没有打乱
+
         for seq in self.training_data:
             if len(self.training_data[seq]) < 2:
                 continue
@@ -28,15 +28,10 @@ class Sequence(Data):
                 self.id2seq[self.seq[seq]] = seq
             for item in self.training_data[seq]:
                 if item not in self.item:
-                    #self.item里面的应该是重新编号过的物品号
+
                     self.item[item] = len(self.item)+1 # 0 as placeholder
                     self.id2item[self.item[item]] = item
-                    if item=='B009115NQA':
-                        print(self.training_data[seq])
-                        print("music1",self.item[item])
-                    if item=='B004KQDBKG':
-                        print(self.training_data[seq])
-                        print("office1",self.item[item])
+
 
             # self.training_set_seq[seq][item] = 1
             # self.training_set_i[item][seq] = 1
@@ -54,7 +49,7 @@ class Sequence(Data):
         for seq in self.training_data:
             if len(self.training_data[seq]) < 2:
                 continue
-            #我认为这是重新编码后的序列
+            
             original_sequences.append((seq,[self.item[item] for item in self.training_data[seq]]))
         return original_sequences
 

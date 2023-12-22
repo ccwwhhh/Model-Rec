@@ -132,7 +132,7 @@ class SequentialRecommender(Recommender):
         if epoch==self.maxEpoch-1:
             self.model_log.add('*Best Performance* ')
             self.model_log.add('Epoch:'+str(self.bestPerformance[0]) + ','+ bp)
-
+       
         print('*Best Performance* ')
         print('Epoch:', str(self.bestPerformance[0]) + ',', bp)
         print('-' * 120)

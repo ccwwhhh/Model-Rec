@@ -4,8 +4,7 @@ import pandas as pd
 import numpy as np
 from re import split
 from sklearn.model_selection import train_test_split
-from transformers import BertTokenizer, GPT2Tokenizer
-from transformers import BertModel,GPT2LMHeadModel
+
 import nltk
 from nltk.corpus import stopwords
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
@@ -17,31 +16,28 @@ import random
 import json
 import time
 
-max_len = 150
-tokenizer = BertTokenizer.from_pretrained('bert', do_lower_case=True)
-if tokenizer.pad_token is None:
-    tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+max_len = 100
 def text_preprocessing(s):
     s = s.lower()
 
     s = re.sub(r"\'t", " not", s)
-
     s = re.sub(r'(@.*?)[\s]', ' ', s)
-
     s = re.sub(r'([\'\"\.\(\)\!\?\\\/\,])', r' \1 ', s)
     s = re.sub(r'[^\w\s\?]', ' ', s)
-
     s = re.sub(r'([\;\:\|•«\n])', ' ', s)
-
     s = " ".join([word for word in s.split()
                   if word not in stopwords.words('english')
                   or word in ['not', 'can']])
-
     s = re.sub(r'\s+', ' ', s).strip()
     return s
 
 
 def preprocessing_for_bert(data):
+    from transformers import BertTokenizer, GPT2Tokenizer
+    from transformers import BertModel, GPT2LMHeadModel
+    tokenizer = BertTokenizer.from_pretrained('bert', do_lower_case=True)
+    if tokenizer.pad_token is None:
+        tokenizer.add_special_tokens({'pad_token': '[PAD]'})
     input_ids = []
     attention_masks = []
     for sent in data:
@@ -67,7 +63,8 @@ def preprocessing_for_bert(data):
     return input_ids, attention_masks
 
 
-
+#下面的函数根据config里数据集名称自动处理
+#在这里加载特征数据集，把序列里的物品ID号和特征对应起来，在这里只取了新闻标题，可以取更多
 def MINDsmall(id2item):
     featureOriginal = {}
     featureNew=[]
@@ -84,11 +81,15 @@ def MINDsmall(id2item):
     train_inputs, train_masks = preprocessing_for_bert(featureNew)
     return train_inputs,train_masks
 
-def Amazon(id2item):
+
+
+
+def Amazon():
     featureOriginal = {}
-    featureNew = []
+
+    path='/usr/gao/cwh/ModalRec/ModalRec/dataset/Amazon-Video/'
     csv.field_size_limit(10000000)
-    with open(r"./dataset/Amazon-Music/meta_Musical_Instruments.json", 'r', encoding="gbk",
+    with open(path+"meta_Video_Games.json", 'r', encoding="gbk",
               errors="ignore") as tsv_file:
 
         tsv_reader = csv.reader(tsv_file, delimiter='\t')
@@ -106,20 +107,39 @@ def Amazon(id2item):
             except:
                 y+=1
                 print(y)
-
+        json_str = json.dumps(featureOriginal)
+        with open(path+'featureNew.json', 'w') as f:
+            f.write(json_str)
             # if('asin' in row.keys()):
             #     featureOriginal[row["asin"]] =' '.join(row["description"])
             # elif('details' in row.keys()):
             #     featureOriginal[row["details"]["asin"]] = ' '.join(row["description"])
-    
+
+
+
+def load_feature(id2item,datasetfile):
+    with open(datasetfile+'featureNew.json') as f:
+        json_str = f.read()
+    featureNew=[]
+    featureOriginal  = json.loads(json_str)
+
+    t = 0
+
     for i in id2item:
+
         try:
+
             featureNew.append(featureOriginal[id2item[i]])
         except:
-
-            print('None')
+            t += 1
+            print(t)
             featureNew.append('None')
         # print(featureOriginal[split('-',id2item[i])[0]])
         # print(featureNew)
     train_inputs, train_masks = preprocessing_for_bert(featureNew)
+
     return train_inputs, train_masks
+
+if __name__ == "__main__":
+     Amazon()
+     load_feature()

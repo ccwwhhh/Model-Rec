@@ -4,12 +4,13 @@ import torch
 
 if __name__ == '__main__':
     # Register your model here
-
+    
 
     # torch.cuda.set_device(1)
     # current_device = torch.cuda.current_device()
     
-    baselines= ['SASRec','BERT4Rec']
+    baselines= ['SASRec','BERT4Rec','CL4SRec','UnisRec']
+    #可以进config
     stages=['Pre','Fine']
     
     print('=' * 80)

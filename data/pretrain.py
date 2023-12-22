@@ -23,7 +23,7 @@ class Pretrain(object):
         self.bert=Bert().cuda()
         
 
-
+        
         initializer = nn.init.xavier_uniform_
         #whole_tensor=nn.Parameter(initializer(torch.empty(1,768))).cuda()
         #for dataset in self.datasetfile.split(","):
@@ -31,8 +31,8 @@ class Pretrain(object):
         self.functionName=(datasetfile.split("/")[2]).split("-")[0]
         #eval('feature.'+self.functionName+'('+'self.data.id2item'+')')
         #self.train_inputs, self.train_masks = feature.AmazonProcess(self.data.id2item)
-        self.train_inputs, self.train_masks=eval('feature.'+self.functionName+'('+'self.data.id2item'+')')
-        
+        # self.train_inputs, self.train_masks=eval('feature.'+self.functionName+'('+'self.data.id2item'+')')
+        self.train_inputs, self.train_masks = feature.load_feature(self.data.id2item,self.datasetfile)
         print(self.train_inputs.shape)
         whole_list = []
         i = 0
@@ -40,11 +40,11 @@ class Pretrain(object):
             outputs = self.bert(self.train_inputs[i*100:(i+1)*100].cuda(), self.train_masks[i*100:(i+1)*100].cuda())[0][:, 0, :]
             whole_list.append(outputs)
             i = i + 1
-
+        #经过bert后取[0][:, 0, :]的意思是用bert中一个单词代表整个句子
         outputs = self.bert(self.train_inputs[i*100:len(self.train_inputs)].cuda(), self.train_masks[i*100:len(self.train_inputs)].cuda())[0][:, 0, :]
         #tensor_size = [outputs.shape[0], outputs.shape[1]]
         whole_list.append(outputs)
-
+        #把所有编码过的item拼接成一个大tensor
         whole_tensor = whole_list[0]
         for i in range(1, len(whole_list)):
             whole_tensor = torch.cat([whole_tensor, whole_list[i]], 0)
