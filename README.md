@@ -32,24 +32,26 @@ BERT4Rec=-n_blocks 2 -drop_rate 0.2 -n_heads 1 -mask_rate 0.5 -eps 0.1 -lambda 0
 output.setup=-dir ./results/  
 feature=text
 
-**-uni 1, -uni 2, -uni 3**  Respectively means Standardized Sampling, User Sequence Sampling, and Popularity Sampling strategies.
-**feature=text:** Using pure text to create representation.
+**-uni 1, -uni 2, -uni 3**  
+Respectively means Standardized Sampling, User Sequence Sampling, and Popularity Sampling strategies.
+**feature=text:** 
+Using pure text to create representation.
 
 
 ## 3.Training
 
->python main.py
+python main.py
 
->================================================================================
+================================================================================
    MoRec: A library for Modal Recommendation.
 ================================================================================
 Baseline Models:
 SASRec   BERT4Rec   CL4SRec   UnisRec
 --------------------------------------------------------------------------------
->Please enter the baselines you want to run:(Model that you want)
+Please enter the baselines you want to run:(Model that you want)
 stages:
 Pre   Fine
 
 --------------------------------------------------------------------------------
->Please enter the stage you want:Pre
+Please enter the stage you want:Pre
 
